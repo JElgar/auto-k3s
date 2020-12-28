@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: dashboard-service
+  namespace: kubernetes-dashboard
+spec:
+  ports:
+  - name: kubernetes-dashboard
+    port: 6379
+    targetPort: 6379
+  selector:
+    app: kubernetes-dashboard
+    role: master
+    tier: backend

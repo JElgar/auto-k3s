@@ -1,5 +1,6 @@
 # Deploys k8 dahsboard 
 
+`kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.0.0/aio/deploy/recommended.yaml`
 `kubectl create -f dashboard.admin-user.yml -f dashboard.admin-user-role.yml`
 
 
