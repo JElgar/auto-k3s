@@ -1,0 +1,32 @@
+- name: Install traefik https://traefik.io/blog/install-and-configure-traefik-with-helm/
+  hosts: 127.0.0.1
+  
+  tasks:
+  - name: add traefik repo
+    shell: helm repo add traefik https://helm.traefik.io/traefik
+  
+  - name: update helm repo
+    shell: helm repo update
+  
+  - name: create traefik namespace
+    community.kubernetes.k8s:
+      name: traefik 
+      api_version: v1
+      kind: Namespace
+      state: present
+  
+  - name: apply traefik config (create secret)
+    community.kubernetes.k8s:
+      state: present
+      src: traefik-config.yaml 
+  
+  - name: install traefik
+    community.kubernetes.helm:
+      name: traefik 
+      chart_ref: traefik/traefik
+      release_namespace: traefik 
+      values: "{{ lookup('file', 'traefik-chart-values.yml') | from_yaml }}"
+  
+  - name: expose dashboard
+    shell: kubectl apply -f traefik_dashboard_auth.yml -f traefik-dashboard-ingressroute.yml
+  

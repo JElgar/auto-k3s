@@ -35,7 +35,7 @@ resource "hcloud_server" "server_0" {
   }
 
   provisioner "remote-exec" {
-    inline = ["curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC=' --write-kubeconfig ~/.kube/config --write-kubeconfig-mode 644 --cluster-init --disable=traefik' K3S_TOKEN='${var.k3s_token}' sh - "]
+    inline = ["curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC=' --write-kubeconfig ~/.kube/config --write-kubeconfig-mode 644 --cluster-init --tls-san ${hcloud_load_balancer.load_balancer.ipv4} --disable=traefik' K3S_TOKEN='${var.k3s_token}' sh - "]
   }
 }
 
@@ -56,7 +56,7 @@ resource "hcloud_server" "servers" {
   }
 
   provisioner "remote-exec" {
-    inline = ["curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC=' --write-kubeconfig ~/.kube/config --write-kubeconfig-mode 644 --cluster-init --server https://${hcloud_server.server_0.ipv4_address}:6443 --tls-san ${hcloud_load_balancer.load_balancer.ipv4} --disable=traefik' K3S_TOKEN='${var.k3s_token}' sh - "]
+    inline = ["curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC=' --write-kubeconfig ~/.kube/config --write-kubeconfig-mode 644 --server https://${hcloud_server.server_0.ipv4_address}:6443 --tls-san ${hcloud_load_balancer.load_balancer.ipv4} --disable=traefik' K3S_TOKEN='${var.k3s_token}' sh - "]
   }
 
 }
