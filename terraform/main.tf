@@ -19,12 +19,6 @@ resource "hcloud_load_balancer" "load_balancer" {
   location = var.location
 }
 
-# resource "hcloud_load_balancer_network" "load_balancer_network" {
-#   load_balancer_id = hcloud_load_balancer.load_balancer.id
-#   network_id = hcloud_network.k3s_network.id
-#   ip = "10.0.1.0"
-# }
-
 # Create inital server
 resource "hcloud_server" "server_0" {
   name = "server-0"
@@ -44,12 +38,6 @@ resource "hcloud_server" "server_0" {
     inline = ["curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC=' --write-kubeconfig ~/.kube/config --write-kubeconfig-mode 644 --cluster-init' K3S_TOKEN='${var.k3s_token}' sh - "]
   }
 }
-
-# resource "hcloud_server_network" "server_0_network" {
-#   server_id = hcloud_server.server_0.id
-#   network_id = hcloud_network.k3s_network.id
-#   ip = "10.0.1.1"
-# }
 
 # Join the rest
 resource "hcloud_server" "servers" {
@@ -73,14 +61,6 @@ resource "hcloud_server" "servers" {
 
 }
 
-# Add all nodes to k3s network
-# resource "hcloud_server_network" "servers_network" {
-#   count = var.server_nodes_count - 1
-#   server_id = hcloud_server.servers[count.index].id
-#   network_id = hcloud_network.k3s_network.id
-#   ip = "10.0.1.${count.index + 2}"
-# }
-
 # Target all load balancers
 resource "hcloud_load_balancer_target" "load_balancer_target_server_0" {
   type             = "server"
@@ -102,3 +82,29 @@ resource "hcloud_load_balancer_service" "load_balancer_service" {
     destination_port = "6443"
 }
 
+# Add all servers and lb to network
+resource "hcloud_load_balancer_network" "load_balancer_network" {
+  load_balancer_id = hcloud_load_balancer.load_balancer.id
+  network_id = hcloud_network.k3s_network.id
+  ip = "10.0.1.2"
+}
+
+resource "hcloud_server_network" "server_0_network" {
+  server_id = hcloud_server.server_0.id
+  network_id = hcloud_network.k3s_network.id
+  ip = "10.0.1.3"
+}
+
+# Add all nodes to k3s network
+resource "hcloud_server_network" "servers_network" {
+  count = var.server_nodes_count - 1
+  server_id = hcloud_server.servers[count.index].id
+  network_id = hcloud_network.k3s_network.id
+  ip = "10.0.1.${count.index + 4}"
+}
+
+# resource "null_resource" "copy_kube_config" {
+#   provisioner "local-exec" {
+#     command = "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@${hcloud_server.server_0.ipv4_address}:.kube/config ~/.kube/config; sed -i 's/127.0.0.1/${hcloud_load_balancer.load_balancer.ipv4}/g' ~/.kube/config"
+#   }
+# }
