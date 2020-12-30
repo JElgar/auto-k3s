@@ -21,6 +21,7 @@
       src: traefik-config.yaml 
   
   - name: install traefik
+    # shell: helm install traefik traefik/traefik --namespace=traefik --values=traefik-chart-values.yml
     community.kubernetes.helm:
       name: traefik 
       chart_ref: traefik/traefik
