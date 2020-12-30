@@ -3,10 +3,10 @@
 
   tasks:
   - name: Up the first server
-    shell: k3sup install --ip {{ server_0 }} --user root --cluster --k3s-version v1.19.1+k3s1 --ssh-key $HOME/.ssh/hetzner_rsa
+    shell: k3sup install --ip {{ server_0 }} --user root --cluster --k3s-version v1.19.1+k3s1 --ssh-key $HOME/.ssh/hetzner_rsa --k3s-extra-args '--no-deploy traefik'
 
   - name: Join the other servers
-    shell: k3sup join --ip {{ item }} --user root --server-user root --server-ip {{ server_0 }} --server --k3s-version v1.19.1+k3s1 --ssh-key $HOME/.ssh/hetzner_rsa
+    shell: k3sup join --ip {{ item }} --user root --server-user root --server-ip {{ server_0 }} --server --k3s-version v1.19.1+k3s1 --ssh-key $HOME/.ssh/hetzner_rsa --k3s-extra-args '--no-deploy traefik'
     with_items: "{{ servers }}"
   
   - name: Set kubeconfig 
