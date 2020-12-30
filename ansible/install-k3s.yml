@@ -1,0 +1,13 @@
+- name: run k3s up https://github.com/alexellis/k3sup#create-a-multi-master-ha-setup-with-embedded-etcd
+  hosts: 127.0.0.1
+
+  tasks:
+  - name: Up the first server
+    shell: k3sup install --ip {{ server_0 }} --user root --cluster --k3s-version v1.19.1+k3s1 --ssh-key $HOME/.ssh/hetzner_rsa
+
+  - name: Join the other servers
+    shell: k3sup join --ip {{ item }} --user root --server-user root --server-ip {{ server_0 }} --server --k3s-version v1.19.1+k3s1 --ssh-key $HOME/.ssh/hetzner_rsa
+    with_items: "{{ servers }}"
+  
+  - name: Set kubeconfig 
+    shell: export KUBECONFIG=`pwd`/ansible/kubeconfig

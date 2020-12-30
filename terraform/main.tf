@@ -26,20 +26,9 @@ resource "hcloud_server" "server_0" {
   server_type = "cx11"
   location = var.location 
   ssh_keys = ["jelgar@UbuntuPC"]
-  
-  connection {
-    type        = "ssh"
-    user        = "root" 
-    host        = self.ipv4_address
-    private_key = file(var.ssh_key_private)
-  }
-
-  provisioner "remote-exec" {
-    inline = ["curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC=' --write-kubeconfig ~/.kube/config --write-kubeconfig-mode 644 --cluster-init --tls-san ${hcloud_load_balancer.load_balancer.ipv4} --disable=traefik' K3S_TOKEN='${var.k3s_token}' sh - "]
-  }
 }
 
-# Join the rest
+# Create the rest of the servers
 resource "hcloud_server" "servers" {
   count = var.server_nodes_count - 1
   name = "server-${count.index + 1}"
@@ -47,18 +36,6 @@ resource "hcloud_server" "servers" {
   server_type = "cx11"
   location = var.location
   ssh_keys = ["jelgar@UbuntuPC"]
-  
-  connection {
-    type        = "ssh"
-    user        = "root"
-    host        = self.ipv4_address
-    private_key = file(var.ssh_key_private)
-  }
-
-  provisioner "remote-exec" {
-    inline = ["curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC=' --write-kubeconfig ~/.kube/config --write-kubeconfig-mode 644 --server https://${hcloud_server.server_0.ipv4_address}:6443 --tls-san ${hcloud_load_balancer.load_balancer.ipv4} --disable=traefik' K3S_TOKEN='${var.k3s_token}' sh - "]
-  }
-
 }
 
 # Target all load balancers
@@ -103,8 +80,9 @@ resource "hcloud_server_network" "servers_network" {
   ip = "10.0.1.${count.index + 4}"
 }
 
-# resource "null_resource" "copy_kube_config" {
-#   provisioner "local-exec" {
-#     command = "scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null root@${hcloud_server.server_0.ipv4_address}:.kube/config ~/.kube/config; sed -i 's/127.0.0.1/${hcloud_load_balancer.load_balancer.ipv4}/g' ~/.kube/config"
-#   }
-# }
+# Run ansible playbook on all servers
+resource "null_resource" "provisioner" {
+  provisioner "local-exec" {
+    command = "ansible-playbook -e 'server_0=${hcloud_server.server_0.ipv4_address}' -e 'servers=${jsonencode(hcloud_server.servers.*.ipv4_address)}' -e 'load_balancer_ip=${hcloud_load_balancer.load_balancer.ipv4}, ' ansible/install-k3s.yml"
+  }
+}
