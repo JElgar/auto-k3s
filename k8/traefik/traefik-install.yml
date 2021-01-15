@@ -15,10 +15,10 @@
       kind: Namespace
       state: present
   
-  - name: apply traefik config (create secret)
-    community.kubernetes.k8s:
-      state: present
-      src: traefik-config.yaml 
+  # - name: apply traefik config (create secret)
+  #   community.kubernetes.k8s:
+  #     state: present
+  #     src: traefik-config.yaml 
   
   - name: install traefik
     # shell: helm install traefik traefik/traefik --namespace=traefik --values=traefik-chart-values.yml
@@ -26,7 +26,7 @@
       name: traefik 
       chart_ref: traefik/traefik
       release_namespace: traefik 
-      values: "{{ lookup('file', 'traefik-chart-values.yml') | from_yaml }}"
+      # values: "{{ lookup('file', 'traefik-chart-values.yml') | from_yaml }}"
   
   - name: expose dashboard
     shell: kubectl apply -f traefik_dashboard_auth.yml -f traefik-dashboard-ingressroute.yml

@@ -1,0 +1,10 @@
+- name: Install rio
+  hosts: 127.0.0.1
+  
+  tasks:
+  - name: Run get rio 
+    shell: curl -sfL https://get.rio.io | sh -
+  
+  - name: Insall Rio on cluster 
+    shell: rio install 
+  
